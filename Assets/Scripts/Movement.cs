@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Netcode;
 
-public class Movement : MonoBehaviour
+public class Movement : NetworkBehaviour
 {
     public Rigidbody2D rb;
     bool isFacingRight = true;
@@ -42,9 +43,16 @@ public class Movement : MonoBehaviour
     float wallJumpTimer;
     public Vector2 wallJumpStrength = new Vector2(5f, 10f);
 
+    private void Start() // Sets rigidbody of player on start
+    {
+        rb = GetComponent<Rigidbody2D>();
+    }
+
     void Update() // Continuously updates the statuses below, calculates player velocity
     {
-        rb.velocity = new Vector2(horizontalMovement * moveSpeed, rb.velocity.y);
+        if (!IsOwner) return;
+
+        rb.linearVelocity = new Vector2(horizontalMovement * moveSpeed, rb.linearVelocity.y);
         Grounded();
         Gravity();
         WallSlide();
@@ -52,7 +60,7 @@ public class Movement : MonoBehaviour
 
         if(!wallJumping) // Changes velocity when changing directions
         {
-            rb.velocity = new Vector2(horizontalMovement * moveSpeed, rb.velocity.y);
+            rb.linearVelocity = new Vector2(horizontalMovement * moveSpeed, rb.linearVelocity.y);
             ChangeDirection();
         }
     }
@@ -68,12 +76,12 @@ public class Movement : MonoBehaviour
         {
             if (context.performed) // Hold for stronger jump
             {
-                rb.velocity = new Vector2(rb.velocity.x, jumpStrength);
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpStrength);
                 remainingJumps--;
             }
             else if (context.canceled) // Tap for smaller jump
             {
-                rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * 0.5f);
                 remainingJumps--;
             }
         }
@@ -82,7 +90,7 @@ public class Movement : MonoBehaviour
         if (context.performed && wallJumpTimer > 0f)
         {
             wallJumping = true;
-            rb.velocity = new Vector2(wallJumpDir * wallJumpStrength.x, wallJumpStrength.y); // Will now jump away from the wall when wal jumping
+            rb.linearVelocity = new Vector2(wallJumpDir * wallJumpStrength.x, wallJumpStrength.y); // Will now jump away from the wall when wal jumping
             wallJumpTimer = 0;
 
             // Forcing a change in direction on wall jump
@@ -119,10 +127,10 @@ public class Movement : MonoBehaviour
 
     private void Gravity() // Sets gravity for player and how it effects them
     {
-        if(rb.velocity.y < 0)
+        if(rb.linearVelocity.y < 0)
         {
             rb.gravityScale = defGravity = speedMult; // Fall faster
-            rb.velocity = new Vector2(rb.velocity.x, Mathf.Max(rb.velocity.y, -highSpeed));
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Max(rb.linearVelocity.y, -highSpeed));
         }
         else
         {
@@ -146,7 +154,7 @@ public class Movement : MonoBehaviour
         if(!grounded & WallCheck() & horizontalMovement != 0)
         {
             sliding = true;
-            rb.velocity = new Vector2(rb.velocity.x, Mathf.Max(rb.velocity.y, -slideSpeed)); // Sets limit to fall speed
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Max(rb.linearVelocity.y, -slideSpeed)); // Sets limit to fall speed
         }
         else
         {

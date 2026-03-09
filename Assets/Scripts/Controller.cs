@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Unity.Netcode;
 
-public class Controller : MonoBehaviour
+public class Controller : NetworkBehaviour
 {
     int pointWorth;
     public Slider progSlider;
@@ -45,7 +46,13 @@ public class Controller : MonoBehaviour
         levelList[currLevelIdx].gameObject.SetActive(false);
         levelList[currLvl].gameObject.SetActive(true);
 
-        player.transform.position = new Vector3(0, 0, 0);
+        //player.transform.position = new Vector3(0, 0, 0);
+        var playerObj = NetworkManager.Singleton.LocalClient.PlayerObject; // New position tracker for multiplayer that updates dynamically
+
+        if (playerObj != null)
+        {
+            playerObj.transform.position = Vector3.zero;
+        }
 
         currLevelIdx = currLvl;
         pointWorth = 0;

@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class Enemy : MonoBehaviour
+public class Enemy : NetworkBehaviour
 {
     // Variables related to enemy stats and target
     public Transform player;
@@ -23,6 +24,8 @@ public class Enemy : MonoBehaviour
 
     void Update() // Updates various conditions for enemy
     {
+        if (!IsServer) return;
+
         // Condition for enemy being grounded
         grounded = Physics2D.Raycast(transform.position, Vector2.down, 1f, groundLayer);
 
@@ -30,7 +33,7 @@ public class Enemy : MonoBehaviour
         float direction = Mathf.Sign(player.position.x - transform.position.x);
 
         // Keep moving horizontally
-        rb.velocity = new Vector2(direction * speed, rb.velocity.y);
+        rb.linearVelocity = new Vector2(direction * speed, rb.linearVelocity.y);
 
         // Look diagonally down to detect upcoming gap
         Vector2 downForward = new Vector2(direction, -0.5f).normalized;

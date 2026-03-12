@@ -22,22 +22,22 @@ public class Controller : NetworkBehaviour
     {
         pointWorth = 0; // 0 points on spawn
         progSlider.value = 0; // 0 points in bar on spawn
-        Gem.GemCollect += IncPoints; // Increase points on collection of coin
+        //Gem.GemCollect += IncPoints; // Increase points on collection of coin
         LoadLevel.HoldCompletion += LoadNextLevel; // Loads next level when holding e
         PlayerHealth.Death += GameOver; // Game over will pop up once the player dies
         gameOver.SetActive(false); // Game over will not pop up until death
     }
 
-    void IncPoints(int worth) // Increases points in progress bar when collecting coins and allows for going to next level when threshold is met
-    {
-        pointWorth += worth;
-        progSlider.value += pointWorth;
+    //void IncPoints(int worth) // Increases points in progress bar when collecting coins and allows for going to next level when threshold is met
+    //{
+        //pointWorth += worth;
+        //progSlider.value += pointWorth;
 
-        if (pointWorth >= 100)
-        {
-            loadCanvas.SetActive(true);
-        }
-    }
+        //if (pointWorth >= 100)
+        //{
+            //loadCanvas.SetActive(true);
+        //}
+    //S}
 
     void LoadLvl(int currLvl) // Loads necessary level (next level or level 1 on death)
     {

@@ -1,23 +1,31 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class Gem : NetworkBehaviour, Items
+public class Gem : NetworkBehaviour
 {
-    // Variables for coin collection and point value
-    public static event System.Action<int> GemCollect;
-    public int points = 5;
-    public void Collect() // Collection of coins that give points for progress, plays the collection sounds, and destroys the coin
+    // Score for gem collection
+    public int value = 1;
+
+    public void Collect(ulong playerId)
     {
-        //GemCollect.Invoke(points);
-        //SoundFXManager.Play("Coins");
-        //Destroy(gameObject);
-        if (!IsServer) return; // Checks for running server
+        // Server handles collection
+        if (!IsServer) return;
 
-        GemCollect?.Invoke(points);
-        SoundFXManager.Play("Coins");
+        // Add score to the player
+        GameManager.Instance.AddScore(playerId, value);
 
-        NetworkObject.Despawn();
+        // Find spawner to make a new gem
+        GemSpawner spawner = FindObjectOfType<GemSpawner>();
+
+        if (spawner != null)
+        {
+            // Respawn a new gem after 2 seconds
+            spawner.RespawnGem(gameObject, 2f);
+        }
+        else
+        {
+            // Despawn gems if there is no spawner
+            NetworkObject.Despawn();
+        }
     }
 }

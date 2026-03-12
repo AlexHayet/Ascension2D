@@ -1,38 +1,36 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
 public class Collector : NetworkBehaviour
 {
-    private void OnTriggerEnter2D(Collider2D collision) // Collect items when colliding with them
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!IsOwner) return; // This checks for the proper client so both players won't send the same rpc
+        if (!IsOwner) return;
 
-        Items item = collision.GetComponent<Items>();
-        if (item != null)
+        Gem gem = collision.GetComponent<Gem>();
+
+        if (gem != null)
         {
-            //item.Collect();
-            //CollectItemServerRpc(item.NetworkObjectId);
+            NetworkObject netObj = gem.GetComponent<NetworkObject>();
 
-            // A network object must exist here because collection is being done across the network, rather than the old singleplayer logic
-            // This allows for both players to collect coins
-            NetworkObject netObj = collision.GetComponent<NetworkObject>();
             if (netObj != null)
             {
-                CollectItemServerRpc(netObj.NetworkObjectId);
+                CollectGemServerRpc(netObj.NetworkObjectId);
             }
         }
     }
 
-    // Rpc used for authoritative actions across the server
     [ServerRpc]
-    void CollectItemServerRpc(ulong itemId)
+    void CollectGemServerRpc(ulong gemId)
     {
-        // The NetworkObject Id is necessary in order to keep track of the exact gem being collected
-        NetworkObject itemObj = NetworkManager.Singleton.SpawnManager.SpawnedObjects[itemId];
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(gemId, out NetworkObject obj))
+        {
+            Gem gem = obj.GetComponent<Gem>();
 
-        // Despawns the gem being collected for all players
-        itemObj.Despawn();
+            if (gem != null)
+            {
+                gem.Collect(OwnerClientId);
+            }
+        }
     }
 }

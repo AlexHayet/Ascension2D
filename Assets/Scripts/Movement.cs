@@ -12,6 +12,7 @@ public class Movement : NetworkBehaviour
     // Movement
     public float moveSpeed = 5f;
     float horizontalMovement;
+    float verticalMovement;
 
     // Jump
     public float jumpStrength = 10f;
@@ -43,7 +44,12 @@ public class Movement : NetworkBehaviour
     float wallJumpTimer;
     public Vector2 wallJumpStrength = new Vector2(5f, 10f);
 
-    private void Start() // Sets rigidbody of player on start
+    //private void Start() // Sets rigidbody of player on start
+    //{
+    //rb = GetComponent<Rigidbody2D>();
+    //}
+
+    public override void OnNetworkSpawn() // Sets rigidbody of player on spawn
     {
         rb = GetComponent<Rigidbody2D>();
     }
@@ -58,7 +64,7 @@ public class Movement : NetworkBehaviour
         WallSlide();
         WallJump();
 
-        if(!wallJumping) // Changes velocity when changing directions
+        if (!wallJumping) // Changes velocity when changing directions
         {
             rb.linearVelocity = new Vector2(horizontalMovement * moveSpeed, rb.linearVelocity.y);
             ChangeDirection();
@@ -67,7 +73,32 @@ public class Movement : NetworkBehaviour
 
     public void Move(InputAction.CallbackContext context) // Gives the player horizontal movement
     {
-        horizontalMovement = context.ReadValue<Vector2>().x;
+        //horizontalMovement = context.ReadValue<Vector2>().x;
+        if (Keyboard.current.leftArrowKey.isPressed)
+        {
+            horizontalMovement = -3.0f;
+        }
+        else if (Keyboard.current.rightArrowKey.isPressed)
+        {
+            horizontalMovement = 3.0f;
+        }
+        else
+        {
+            horizontalMovement = 0;
+        }
+        if (Keyboard.current.downArrowKey.isPressed)
+        {
+            verticalMovement = -3.0f;
+        }
+        else if (Keyboard.current.upArrowKey.isPressed)
+        {
+            verticalMovement = 3.0f;
+        }
+        else
+        {
+            verticalMovement = 0;
+        }
+        GetComponent<Rigidbody2D>().linearVelocity = new Vector2(horizontalMovement, verticalMovement);
     }
 
     public void Jump(InputAction.CallbackContext context) // Allows the player to jump, hold jump, and wall jump
@@ -127,7 +158,7 @@ public class Movement : NetworkBehaviour
 
     private void Gravity() // Sets gravity for player and how it effects them
     {
-        if(rb.linearVelocity.y < 0)
+        if (rb.linearVelocity.y < 0)
         {
             rb.gravityScale = defGravity = speedMult; // Fall faster
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Max(rb.linearVelocity.y, -highSpeed));
@@ -140,7 +171,7 @@ public class Movement : NetworkBehaviour
 
     private void ChangeDirection() // Allows the player model to change directions while moving left and right
     {
-        if(isFacingRight && horizontalMovement < 0 || !isFacingRight && horizontalMovement > 0)
+        if (isFacingRight && horizontalMovement < 0 || !isFacingRight && horizontalMovement > 0)
         {
             isFacingRight = !isFacingRight;
             Vector3 ls = transform.localScale;
@@ -151,7 +182,7 @@ public class Movement : NetworkBehaviour
 
     private void WallSlide() // When pressing against a wall the player can slide down it at a slower rate than falling
     {
-        if(!grounded & WallCheck() & horizontalMovement != 0)
+        if (!grounded & WallCheck() & horizontalMovement != 0)
         {
             sliding = true;
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Max(rb.linearVelocity.y, -slideSpeed)); // Sets limit to fall speed
